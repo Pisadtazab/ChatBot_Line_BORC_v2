@@ -121,7 +121,19 @@ class LineBotService:
         user_id = event.source.user_id
         self.start_loading(user_id)
 
-        answer, _current_pdf_name, image_results = self.query_rag(event.message.text)
+        try:
+            answer, _current_pdf_name, image_results = self.query_rag(
+                event.message.text
+            )
+        except Exception:
+            logger.exception(
+                "Unable to generate RAG answer for user_id=%s", user_id
+            )
+            answer = (
+                "ระบบกำลังตอบช้าหรือบริการค้นหาขัดข้อง "
+                "กรุณาลองส่งคำถามอีกครั้ง"
+            )
+            image_results = []
 
         max_image_messages = MAX_LINE_MESSAGES - 1
 

@@ -42,7 +42,19 @@ logger = logging.getLogger(__name__)
 
 
 MAX_CONTEXT_RESULTS = 8
+DEFAULT_CONTEXT_RESULTS = 4
 MAX_LINE_TEXT_LENGTH = 4_800
+EXTENDED_QUERY_TERMS = (
+    "ทั้งหมด",
+    "ทุกคน",
+    "ทุกอาจารย์",
+    "รายชื่อ",
+    "มีใครบ้าง",
+    "ละเอียด",
+    "อธิบาย",
+    "เปรียบเทียบ",
+    "สรุป",
+)
 
 
 # Typhoon Client
@@ -101,6 +113,9 @@ def query_rag(query_text):
 
     print("#### RAG get Question ####")
 
+    needs_extended_answer = any(
+        term in query_text for term in EXTENDED_QUERY_TERMS
+    )
     question_embedding = embed_text(query_text)
 
     pipeline = [
@@ -110,7 +125,11 @@ def query_rag(query_text):
                 "path": "embedding",
                 "queryVector": question_embedding,
                 "numCandidates": 80,
-                "limit": MAX_CONTEXT_RESULTS,
+                "limit": (
+                    MAX_CONTEXT_RESULTS
+                    if needs_extended_answer
+                    else DEFAULT_CONTEXT_RESULTS
+                ),
             }
         },
         {
@@ -250,7 +269,7 @@ def query_rag(query_text):
             }
         ],
         temperature=0.3,
-        max_tokens=1500,
+        max_tokens=1500 if needs_extended_answer else 700,
         top_p=0.9,
         presence_penalty=0.6,
     )
