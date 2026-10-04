@@ -28,6 +28,8 @@ def notifyqueue(data: BookingData):
         flex_row(" สถานะ", "รอการอนุมัติ", value_color="#FFB100", value_weight="bold"),
     ]
     confirmation = [
+        flex_row("👤 ชื่อ", data.StudentName, wrap=True),
+        flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},

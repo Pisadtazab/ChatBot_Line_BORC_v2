@@ -121,7 +121,7 @@ The booking application calls these notification endpoints after a booking actio
 | --- | --- | --- | --- |
 | Student requests a booking | `POST /NotifyQueueAdivsor/BookingStudent` | `StudentId` | `AdvisorId` |
 | Student reschedules | `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` | `AdvisorId` |
-| Advisor reschedules | `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` | `UserId` |
+| Advisor reschedules | `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` | `userId` or `UserId` |
 | Student cancels | `POST /NotifyCancelled/CancelBooking` | `StudentId` | `AdvisorId` |
 | Advisor approves or cancels | `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` | `userId` or `UserId` |
 
