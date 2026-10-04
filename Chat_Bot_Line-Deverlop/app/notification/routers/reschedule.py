@@ -1,11 +1,17 @@
-from app.notification.helpers.flex import flex_row, send_flex_notifications
+from app.notification.helpers.flex import flex_row, send_flex_request_notifications
 
 
-def push_reschedule_notifications(user_ids: list[str | None], title: str, student_name: str, status_text: str, date: str, time: str, color: str = "#445DFF") -> dict:
-    rows = [("👤 ชื่อ", student_name), ("📅 วันที่", date), ("⏰ เวลา", time), (" สถานะ", status_text)]
-    contents = []
-    for index, (label, value) in enumerate(rows):
-        if index == 3:
-            contents.append({"type": "separator"})
-        contents.append(flex_row(label, value, value_color="#445DFF" if index == 3 else "#1a1a1a", value_weight="bold" if index == 3 else "regular", wrap=True, label_color="#000000" if index == 3 else "#aaaaaa"))
-    return send_flex_notifications(user_ids, title, color, contents)
+def push_reschedule_notifications(sender_id: str | None, recipient_id: str | None, sender_title: str, recipient_title: str, student_name: str, date: str, time: str, color: str = "#445DFF") -> dict:
+    def contents(status: str) -> list[dict]:
+        return [
+            flex_row("👤 ชื่อ", student_name, wrap=True),
+            flex_row("📅 วันที่", date),
+            flex_row("⏰ เวลา", time),
+            {"type": "separator"},
+            flex_row("สถานะ", status, value_color=color, value_weight="bold", wrap=True),
+        ]
+
+    return send_flex_request_notifications(
+        sender_id, recipient_id, sender_title, recipient_title, color,
+        contents("ส่งคำขอเลื่อนคิวสำเร็จ"), contents("เลื่อนคิว"),
+    )

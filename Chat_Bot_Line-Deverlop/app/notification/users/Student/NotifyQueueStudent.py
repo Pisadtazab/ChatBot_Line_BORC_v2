@@ -1,11 +1,11 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel, Field
 
-from app.notification.helpers.flex import flex_row, send_flex_notifications
+from app.notification.helpers.flex import flex_row, send_flex_request_notifications
 
 
 class StudentNotifyData(BaseModel):
-    userId: str | None = None
+    userId: str | None = Field(default=None, validation_alias=AliasChoices("userId", "UserId"))
     AdvisorId: str | None = None
     StudentName: str
     AdvisorName: str
@@ -26,12 +26,17 @@ def notify_student(data: StudentNotifyData):
     if data.Status not in statuses:
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
     title, status_text, color = statuses[data.Status]
-    delivery = send_flex_notifications([data.userId, data.AdvisorId], title, color, [
+    details = [
         flex_row("👤 ชื่อ", data.StudentName),
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
         flex_row("🔖 สถานะ", status_text, value_color=color, value_weight="bold"),
-    ])
-    return {"status": "success", "message": f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว", "notification": delivery}
+    ]
+    confirmation = [
+        flex_row("👤 นักศึกษา", data.StudentName, wrap=True),
+        flex_row("🔖 ผลการจอง", status_text, value_color=color, value_weight="bold"),
+    ]
+    delivery = send_flex_request_notifications(data.AdvisorId, data.userId, "ส่งผลการจองสำเร็จ", title, color, confirmation, details)
+    return {"status": delivery["status"], "message": f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว", "notification": delivery}

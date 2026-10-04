@@ -22,6 +22,7 @@ LINE message ──▶ /callback ──▶ BAAI/bge-m3 (Hugging Face)
                                   LINE Push
 
 Booking system ──▶ notification POST routes ──▶ LINE Flex Push API
+BORC.BookingOnline ──▶ 60-second reminder loop ──▶ LINE Flex Push API
 ```
 
 ## โครงสร้างโปรเจกต์
@@ -41,6 +42,7 @@ app/
 ├── promrt_typhoon.py              # Chat system prompt
 └── notification/
     ├── DB/database_noti.py        # BORC notification database
+    ├── services/trickgerBooking.py # Scheduled BookingOnline notifications
     ├── helpers/flex.py            # Shared Flex message and push helper
     ├── routers/                   # Login, LINE push and reschedule helpers
     └── users/
@@ -93,29 +95,52 @@ extractpdf-flow.txt                # Detailed PDF and RAG flow
 
 ไม่มี route หน้า Admin UI ที่ `/` ใน FastAPI app ปัจจุบัน
 
-### Notification recipients
+## Notification flow
 
-ใน 5 booking notification endpoints ฟิลด์ LINE ID ของ Advisor และ Student รับ string, `null`, หรือไม่ส่ง field ได้ เฉพาะ ID ที่มีค่าจะถูกลองส่ง; ความล้มเหลวของผู้รับคนหนึ่งไม่หยุดการส่งให้อีกคน ผลอยู่ใน `notification`. Endpoint ผูก LINE และส่ง URL ยังต้องมี ID ของผู้รับตาม model ของตัวเอง:
-
-```json
-{"status":"success|partial|error|skipped","sent":1,"failed":0,"skipped":1}
+```mermaid
+flowchart TD
+    A[Booking action] --> B[Notification POST route]
+    B --> C{Both LINE IDs present?}
+    C -- Yes --> D[Push event Flex to recipient]
+    D --> E{Recipient push succeeds?}
+    E -- Yes --> F[Push success Flex to sender]
+    E -- No --> G[Push failure Flex to sender]
+    C -- No --> H[Push failure Flex to available ID]
+    J[FastAPI startup] --> K[Read BookingOnline every 60 seconds]
+    K --> L{Status and appointment time}
+    L -- Approved, 30 minutes before --> M[Reminder Flex to Student and Advisor]
+    L -- Approved, start time reached --> N[Start-time Flex to Student and Advisor]
+    L -- Completed --> O[Completion Flex to Student and Advisor]
 ```
 
-เพื่อแจ้งทั้งสองฝ่าย ให้ส่ง `AdvisorId` กับ `StudentId` ใน endpoint ฝั่ง Advisor หรือส่ง `userId`/`UserId` กับ `AdvisorId` ใน endpoint ฝั่ง Student ตัวอย่าง field เพิ่มเติม:
+### Booking actions
 
-```json
-{
-  "AdvisorId": "Uadvisor...",
-  "StudentId": "Ustudent...",
-  "StudentName": "สมชาย ใจดี",
-  "ResearchTopic": "หัวข้องานวิจัย",
-  "Date": "2026-10-02",
-  "Time": "10:00",
-  "Status": "Pending"
-}
-```
+The booking application calls these notification endpoints after a booking action. The LINE IDs must be passed from the booking record:
 
-ค่าฟิลด์อื่นของแต่ละ endpoint ยังคงเป็นไปตาม model ในไฟล์ router นั้น เช่น `CancelReason`, `AdvisorName` และ `Status`
+| Action | Endpoint | Sender ID | Recipient ID |
+| --- | --- | --- | --- |
+| Student requests a booking | `POST /NotifyQueueAdivsor/BookingStudent` | `StudentId` | `AdvisorId` |
+| Student reschedules | `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` | `AdvisorId` |
+| Advisor reschedules | `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` | `UserId` |
+| Student cancels | `POST /NotifyCancelled/CancelBooking` | `StudentId` | `AdvisorId` |
+| Advisor approves or cancels | `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` | `userId` or `UserId` |
+
+The API sends a success Flex to the sender and an event Flex to the recipient. If either ID is empty or delivery to the recipient fails, it returns `error` and tries to send a failure Flex to an available ID. If both IDs are empty, LINE has no destination for that failure message. The response includes the delivery result under `notification`.
+
+### Reminders from `BookingOnline`
+
+On app startup, a background loop reads the existing `BORC.BookingOnline` records every 60 seconds. It uses `userId` for the Student LINE ID and `AdvisorId` for the Advisor LINE ID.
+
+- `Status: "Approved"`: sends a reminder during the 30 minutes before the appointment, then sends another Flex when the appointment start time is reached.
+- `Status: "Completed"`: sends a completion Flex.
+- `Date` uses `YYYY-MM-DD`; `Time` uses a range such as `13:00-15:00`. The first time is treated as the appointment start.
+- `ReminderSent`, `StartNotified`, and `CompletionNotified` are stored on the booking document to prevent repeated notifications.
+
+The background loop checks once per minute, so a time-based notification can be up to about one minute late. No separate MongoDB trigger is required.
+
+## Notification recipients
+
+Booking action endpoints require both sender and recipient LINE IDs. Empty IDs or failed delivery return `error`; the API attempts a failure Flex to the available ID. When both IDs are empty, it can only return the error in the HTTP response. The automated `BookingOnline` reminders send to whichever IDs are present and store a notification flag after the attempt.
 
 ## Environment variables
 
@@ -128,7 +153,7 @@ extractpdf-flow.txt                # Detailed PDF and RAG flow
 | `HUGGINGFACE_TOKEN` | Hugging Face Inference API สำหรับ BAAI/bge-m3 embeddings |
 | `Typhoon_api_key` | Typhoon API สำหรับสรุป PDF และสร้างคำตอบแชท |
 | `MONGO_URI` | MongoDB chatbot database (`employee_research_db_V2`) |
-| `MONGO_URI_BORC` | MongoDB notification database (`BORC`, collection `UserProfile`) |
+| `MONGO_URI_BORC` | MongoDB notification database (`BORC`, collections `UserProfile` and `BookingOnline`) |
 | `CLOUD_IMAGE` | Cloudinary cloud name |
 | `API_KEY` | Cloudinary API key |
 | `API_SECRET` | Cloudinary API secret |

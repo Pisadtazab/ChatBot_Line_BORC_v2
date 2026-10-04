@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from dotenv import load_dotenv
@@ -9,6 +10,7 @@ from linebot.v3.exceptions import InvalidSignatureError
 from app.notification.DB.database_noti import collection as notify_collection
 from app.notification.routers.GetLine_id import router as notify_login_router
 from app.notification.routers.line_notify import push_flex_notification
+from app.notification.services.trickgerBooking import booking_notification_loop
 from app.notification.users.Advisor.NotifyQueue import router as advisor_queue_router
 from app.notification.users.Advisor.NotifyQueueCancelled import router as advisor_cancelled_router
 from app.notification.users.Advisor.NotifyRecheduleAdvisor import router as advisor_reschedule_router
@@ -94,3 +96,19 @@ async def callback(
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def start_booking_notifications():
+    app.state.booking_notification_task = asyncio.create_task(booking_notification_loop())
+
+
+@app.on_event("shutdown")
+async def stop_booking_notifications():
+    task = getattr(app.state, "booking_notification_task", None)
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass

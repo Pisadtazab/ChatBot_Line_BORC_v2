@@ -131,7 +131,7 @@ def query_rag(query_text):
                     else DEFAULT_CONTEXT_RESULTS
                 ),
             }
-        },
+        },  
         {
             "$project": {
                 "content": 1,

@@ -19,5 +19,5 @@ class RecheduleData(BaseModel):
 def notify_Rechedule(data: RecheduleData):
     if data.Status != "Rescheduled":
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
-    delivery = push_reschedule_notifications([data.UserId, data.AdvisorId], "อาจารย์เลื่อนคิว", data.StudentName, "เลื่อนคิว", data.Date, data.Time)
-    return {"status": "success", "notification": delivery}
+    delivery = push_reschedule_notifications(data.AdvisorId, data.UserId, "ส่งคำขอเลื่อนคิวสำเร็จ", "อาจารย์เลื่อนคิว", data.StudentName, data.Date, data.Time)
+    return {"status": delivery["status"], "notification": delivery}
