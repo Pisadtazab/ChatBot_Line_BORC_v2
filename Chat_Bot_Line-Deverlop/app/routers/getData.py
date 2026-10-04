@@ -1,4 +1,6 @@
 
+import logging
+
 from pydantic import BaseModel
 from fastapi import APIRouter,HTTPException
 from gridfs import GridFS
@@ -9,6 +11,7 @@ from bson import ObjectId
 from app.DB.database import collection,db
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Model สำหรับแสดงข้อมูลในฐานข้อมูล
 class FileData(BaseModel):
@@ -28,8 +31,9 @@ def get_files():
             {"$sort": {"_id": 1}},
         ])
         return [{"file_name": file["_id"], "file_id": str(file["file_id"])} for file in files]
-    except Exception as e:   
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unable to list PDF files")
+        raise HTTPException(status_code=500, detail="Unable to list PDF files")
 
 
 fs = GridFS(db)

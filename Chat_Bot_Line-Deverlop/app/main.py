@@ -2,7 +2,7 @@ import asyncio
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from linebot.v3.exceptions import InvalidSignatureError
@@ -20,6 +20,7 @@ from app.notification.users.Student.NotifyUrl_Student import router as student_c
 from app.retriever import query_rag, respone_message_LLM, send_image
 from app.routers import deleteFile, extractPDF, getData
 from app.services.line_bot import LineBotService
+from app.security import require_api_key
 
 load_dotenv(override=True)
 app = FastAPI()
@@ -53,16 +54,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for router in (extractPDF.router, deleteFile.router, getData.router):
-    app.include_router(router)
+api_key_required = [Depends(require_api_key)]
 
-app.include_router(notify_login_router, prefix="/NotifyFristLogin", tags=["Notification"])
-app.include_router(student_queue_router, prefix="/NotifyQueueStudent", tags=["Notification"])
-app.include_router(student_reschedule_router, prefix="/NotifyQueueStudent", tags=["Notification"])
-app.include_router(advisor_queue_router, prefix="/NotifyQueueAdivsor", tags=["Notification"])
-app.include_router(advisor_cancelled_router, prefix="/NotifyCancelled", tags=["Notification"])
-app.include_router(advisor_reschedule_router, prefix="/NotifyQueueAdivsor", tags=["Notification"])
-app.include_router(student_chat_router, prefix="/NotifyChat", tags=["Notification_Chat"])
+for router in (extractPDF.router, deleteFile.router, getData.router):
+    app.include_router(router, dependencies=api_key_required)
+
+app.include_router(notify_login_router, prefix="/NotifyFristLogin", tags=["Notification"], dependencies=api_key_required)
+app.include_router(student_queue_router, prefix="/NotifyQueueStudent", tags=["Notification"], dependencies=api_key_required)
+app.include_router(student_reschedule_router, prefix="/NotifyQueueStudent", tags=["Notification"], dependencies=api_key_required)
+app.include_router(advisor_queue_router, prefix="/NotifyQueueAdivsor", tags=["Notification"], dependencies=api_key_required)
+app.include_router(advisor_cancelled_router, prefix="/NotifyCancelled", tags=["Notification"], dependencies=api_key_required)
+app.include_router(advisor_reschedule_router, prefix="/NotifyQueueAdivsor", tags=["Notification"], dependencies=api_key_required)
+app.include_router(student_chat_router, prefix="/NotifyChat", tags=["Notification_Chat"], dependencies=api_key_required)
 
 line_bot = LineBotService(
     access_token=get_secret_value("ACCESS_TOKEN") or "",

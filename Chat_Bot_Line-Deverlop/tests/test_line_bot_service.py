@@ -13,9 +13,8 @@ def make_service(**overrides):
     defaults = {
         "access_token": "test-token",
         "channel_secret": "test-secret",
-        "query_rag": Mock(return_value=("answer", "guide.pdf")),
+        "query_rag": Mock(return_value=("answer", "guide.pdf", [])),
         "make_text_message": Mock(return_value=TextMessage(text="answer")),
-        "find_image_ids": Mock(return_value=[]),
         "make_image_messages": Mock(return_value=[]),
         "find_notification_user": Mock(return_value=None),
         "push_notification": Mock(),
@@ -49,7 +48,7 @@ class LineBotServiceTests(unittest.TestCase):
         self.assertTrue(service.accept_event(message_event(event_id="event-3")))
         self.assertTrue(service.accept_event(first))
 
-    def test_message_reply_contains_text_and_at_most_four_images(self):
+    def test_message_push_contains_text_and_at_most_four_images(self):
         images = [
             ImageMessage(
                 original_content_url=f"https://example.com/{index}.jpg",
@@ -57,8 +56,9 @@ class LineBotServiceTests(unittest.TestCase):
             )
             for index in range(6)
         ]
+        image_urls = [f"https://example.com/{index}.jpg" for index in range(6)]
         service = make_service(
-            find_image_ids=Mock(return_value=["1", "2", "3", "4", "5", "6"]),
+            query_rag=Mock(return_value=("answer", "guide.pdf", image_urls)),
             make_image_messages=Mock(return_value=images),
         )
         service.start_loading = Mock()
@@ -69,10 +69,11 @@ class LineBotServiceTests(unittest.TestCase):
             service.process_message(message_event())
 
         service.start_loading.assert_called_once_with("U1")
-        request = messaging_api.return_value.reply_message.call_args.args[0]
-        self.assertEqual(request.reply_token, "reply-token")
+        request = messaging_api.return_value.push_message.call_args.args[0]
+        self.assertEqual(request.to, "U1")
         self.assertEqual(len(request.messages), 5)
         self.assertIsInstance(request.messages[0], TextMessage)
+        service.make_image_messages.assert_called_once_with(image_urls[:4])
 
     def test_follow_event_sends_registered_user_welcome(self):
         notify = Mock()

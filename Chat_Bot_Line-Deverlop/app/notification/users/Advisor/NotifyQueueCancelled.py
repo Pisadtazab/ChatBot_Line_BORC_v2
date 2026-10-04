@@ -8,6 +8,7 @@ class CancelData(BaseModel):
     AdvisorId: str | None = None
     StudentId: str | None = None
     StudentName: str
+    ResearchTopic: str = ""
     Date: str
     Time: str
     CancelReason: str
@@ -21,7 +22,7 @@ def notify_cancel(data: CancelData):
     reason = data.CancelReason.strip() or "ไม่ได้ระบุเหตุผล"
     details = [
         flex_row("👤 ชื่อ", data.StudentName, wrap=True),
-        flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True),
+        *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
@@ -29,7 +30,7 @@ def notify_cancel(data: CancelData):
     ]
     confirmation = [
         flex_row("👤 ชื่อ", data.StudentName, wrap=True),
-        flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True),
+        *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},

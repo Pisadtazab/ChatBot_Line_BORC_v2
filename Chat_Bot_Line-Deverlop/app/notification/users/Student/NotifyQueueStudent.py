@@ -39,4 +39,9 @@ def notify_student(data: StudentNotifyData):
         flex_row("🔖 ผลการจอง", status_text, value_color=color, value_weight="bold"),
     ]
     delivery = send_flex_request_notifications(data.AdvisorId, data.userId, "ส่งผลการจองสำเร็จ", title, color, confirmation, details)
-    return {"status": delivery["status"], "message": f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว", "notification": delivery}
+    message = (
+        f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว"
+        if delivery["status"] == "success"
+        else f"ส่งแจ้งเตือนนักศึกษา {data.StudentName} ไม่สำเร็จ"
+    )
+    return {"status": delivery["status"], "message": message, "notification": delivery}

@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/send_url/notification")
-async def receive_line_notification_url(payload: LineNotification):
+def receive_line_notification_url(payload: LineNotification):
     if not payload.url.startswith(("http://", "https://")):
         return {"status": "error", "detail": "url must start with http:// or https://"}
     title = "แจ้งเตือนนัดหมาย"
@@ -25,4 +25,4 @@ async def receive_line_notification_url(payload: LineNotification):
         {"type": "button", "style": "primary", "height": "sm", "color": "#00B900", "action": {"type": "uri", "label": "เปิดลิงก์", "uri": payload.url}},
         FOOTER,
     ])
-    return {"status": "ok", "line_response": result}
+    return {"status": result.get("status", "error"), "line_response": result}

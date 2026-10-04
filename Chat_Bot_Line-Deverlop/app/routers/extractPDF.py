@@ -83,7 +83,7 @@ def embed_text(text: str) -> List[float]:
         status = exc.response.status_code if exc.response is not None else "unknown"
         detail = exc.response.text[:300] if exc.response is not None else str(exc)
         logger.error("Hugging Face embedding request returned %s: %s", status, detail)
-        raise HTTPException(502, f"Hugging Face returned {status}: {detail}") from exc
+        raise HTTPException(502, "Embedding API returned an error") from exc
     except requests.RequestException as exc:
         logger.exception("Hugging Face embedding request failed")
         raise HTTPException(502, "Embedding API request failed; check server logs") from exc
@@ -97,10 +97,7 @@ def summarize_content(content: str) -> str:
     สรุปเนื้อหา โดยเรียกผ่าน Typhoon API (chat completion)
     แทนการรัน MT5 ในเครื่องหรือเรียกผ่าน HF Inference API
     """
-    print("%%%%%%%%%%%%%% SUMMARY %%%%%%%%%%%%%%%%%%%%%")
-
     if not content or len(content.strip()) < 50:
-        print("Content is too short for summarization.")
         return "ไม่สามารถสรุปเนื้อหาได้เนื่องจากเนื้อหาสั้นเกินไป"
 
     # จำกัดความยาว input กันข้อความยาวเกินไป (กัน token เกิน context window / ค่าใช้จ่ายบาน)
@@ -117,12 +114,10 @@ def summarize_content(content: str) -> str:
             max_tokens=400,
         )
         summary = response.choices[0].message.content
-    except Exception as e:
-        print(f"Typhoon summarization API error: {e}")
-        raise HTTPException(502, f"Summarization API error: {e}")
+    except Exception as exc:
+        logger.exception("Typhoon summarization failed")
+        raise HTTPException(502, "Summarization API failed") from exc
 
-    print(f" summary: {summary}.")
-    print("%%%%%%%%%%%%%% SUMMARY %%%%%%%%%%%%%%%%%%%%%")
     return summary
 
 
@@ -205,16 +200,13 @@ def extract_pdf_content(pdf_path: str) -> Tuple[List[Dict], str]:
 
         # ตัดคำภาษาไทย
         thaitoken_text = preprocess_thai_text(content_text) if any(0x0E00 <= ord(c) <= 0x0E7F for c in content_text) else content_text
-        print("################################")
-        print(f"{ thaitoken_text }")
-        print("################################")
+        logger.info("PDF text extracted (%d characters)", len(thaitoken_text))
 
         summary = summarize_content(thaitoken_text)
-
         return content_chunks, summary
 
-    except Exception as e:
-        print("เกิดข้อผิดพลาดในการแยก PDF: %s", str(e))
+    except Exception:
+        logger.exception("Unable to extract PDF content")
         raise
 
 
@@ -236,14 +228,10 @@ def store_in_mongodb(content_chunks: List[Dict], pdf_name: str):
     """
     เก็บข้อมูลข้อความและรูปภาพใน MogoDb พร้อม embedding
     """
-    print("##### Start store in mogodb atlas #########")
     for chunk in content_chunks:
         text = chunk["text"]
         images = chunk["images"]
-        print("################# Text embeding store ##################")
         text_embedding = embed_text(text)
-
-        print(f"text: {text} ")
 
         # Store text data
         text_document = {
@@ -253,9 +241,7 @@ def store_in_mongodb(content_chunks: List[Dict], pdf_name: str):
         }
         collection.insert_one(text_document)
 
-        print("################# images embeding store ##################")
-
-        print(f"images: {images} ")
+        logger.info("Storing PDF page %s with %d images", chunk["page"], len(images))
         for idx, img in enumerate(chunk["images"], start=1):
             image_uid = f"{pdf_name}__page{chunk['page']}__order{idx}"
             image_url = upload_image(

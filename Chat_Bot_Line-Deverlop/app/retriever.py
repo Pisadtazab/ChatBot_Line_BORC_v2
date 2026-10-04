@@ -18,20 +18,6 @@ load_dotenv(override=True)
 
 # Hugging Face Embedding
 
-HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-
-EMBED_MODEL_URL = (
-    "https://router.huggingface.co/"
-    "hf-inference/models/BAAI/bge-m3/"
-    "pipeline/feature-extraction"
-)
-
-HF_HEADERS = {
-    "Authorization": f"Bearer {HF_TOKEN}"
-}
-
-
-
 REQUEST_INTERVAL = 0.25  # 4 requests / second
 
 last_request_time = 0
@@ -180,8 +166,6 @@ def query_rag(query_text):
     # Current PDF
     top_result = results[0]
 
-    print(f"top_result = '{top_result}'")
-
     current_pdf_name = (
         top_result
         .get("metadata", {})
@@ -275,9 +259,6 @@ def query_rag(query_text):
     )
 
     llm_raw = response.choices[0].message.content
-
-    print("#### LLM Raw Response ####")
-    print(llm_raw)
 
     # ============================================================
     # Parse JSON
@@ -406,8 +387,7 @@ def query_rag(query_text):
     if raw_json_in_answer:
         image_results = []
 
-    print(f"Selected image_urls: {image_results}")
-    print(f"Image results: {len(image_results)}")
+    logger.info("Selected %d relevant image results", len(image_results))
 
     return (
         llm_answer,

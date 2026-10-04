@@ -16,19 +16,13 @@ def sendNotify_Login(data: notifyLogin):
     existing_user = notify_collection.find_one({"userId": data.userId})
     
     if existing_user and existing_user.get("Status") == "Approved":
-        #  ยังไม่ Approved → ส่งแจ้งเตือน
-        print(f" กำลัง push ไปที่ userId: {data.userId}")
         notification = push_flex_notification(
             user_id=data.userId,
             title=f"สวัสดีคุณ {data.Firstname}! 👋",
             message="ระบบแจ้งเตือนพร้อมแล้ว \nยินดีต้อนรับเข้าสู่ระบบ😊",
             color="#00B900"
         )
-        return {"status": "success", "notification": notification}
+        return {"status": notification.get("status", "error"), "notification": notification}
 
     
-    print(" Approved แล้ว skip")
     return {"status": "skip"}
-    
-# if __name__ == "__main__":
-#     sendNotify_Login()

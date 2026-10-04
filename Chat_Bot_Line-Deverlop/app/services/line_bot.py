@@ -3,6 +3,7 @@ import logging
 from collections import deque
 from collections.abc import Callable
 from typing import Any
+from weakref import WeakValueDictionary
 
 import requests
 from linebot.v3 import WebhookHandler
@@ -36,7 +37,7 @@ class LineBotService:
         self.make_image_messages = make_image_messages
         self.find_notification_user = find_notification_user
         self.push_notification = push_notification
-        self.user_message_locks: dict[str, asyncio.Lock] = {}
+        self.user_message_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
         self.rag_semaphore = asyncio.Semaphore(max_concurrent_jobs)
         self._processed_event_ids: set[str] = set()
         self._processed_event_order: deque[str] = deque(maxlen=max_processed_event_ids)
@@ -109,8 +110,11 @@ class LineBotService:
             logger.warning("Ignoring LINE message without a user_id")
             return
 
-        # ponytail: keep one lock per active user; evict only if user volume makes this material.
-        lock = self.user_message_locks.setdefault(user_id, asyncio.Lock())
+        # Keep ordering locks only while that user has queued or active work.
+        lock = self.user_message_locks.get(user_id)
+        if lock is None:
+            lock = asyncio.Lock()
+            self.user_message_locks[user_id] = lock
         async with lock, self.rag_semaphore:
             try:
                 await asyncio.to_thread(self.process_message, event)
@@ -146,7 +150,7 @@ class LineBotService:
                 "เนื่องจากข้อจำกัดของ LINE "
                 f"(ส่งได้สูงสุด {max_image_messages} รูปต่อข้อความ)"
             )
-            image_results = []
+            image_results = image_results[:max_image_messages]
 
         messages = [self.make_text_message(answer)]
         messages.extend(self.make_image_messages(image_results))

@@ -11,7 +11,7 @@ TZ = ZoneInfo("Asia/Bangkok")
 
 
 def template_notify(booking: dict, marker: str, title: str, color: str, status: str) -> None:
-    send_flex_notifications(
+    delivery = send_flex_notifications(
         [booking.get("userId"), booking.get("AdvisorId")], title, color, [
             flex_row("👤 นักศึกษา", booking.get("StudentName", "-"), wrap=True),
             flex_row("👨‍🏫 อาจารย์", booking.get("Advisor_Name", "-"), wrap=True),
@@ -21,6 +21,12 @@ def template_notify(booking: dict, marker: str, title: str, color: str, status: 
             flex_row("🔖 สถานะ", status, value_color=color, value_weight="bold", wrap=True),
         ]
     )
+    if delivery["failed"] or not delivery["sent"]:
+        logging.warning(
+            "Booking notification not delivered; booking_id=%s marker=%s result=%s",
+            booking.get("_id"), marker, delivery,
+        )
+        return
     collection_BookingOnline.update_one({"_id": booking["_id"]}, {"$set": {marker: True}})
 
 
