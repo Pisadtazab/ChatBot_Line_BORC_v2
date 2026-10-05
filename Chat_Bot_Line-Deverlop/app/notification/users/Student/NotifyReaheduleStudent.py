@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 class RecheduleData(BaseModel):
-    StudentId: str 
+    StudentId: str = Field(validation_alias=AliasChoices("StudentId", "studentId", "userId", "UserId"))
     AdvisorId: str
     AdvisorName: str
     StudentName: str
@@ -19,7 +19,7 @@ class RecheduleData(BaseModel):
 # flex รับ
 @router.post("/RecheduleStudent")
 def notify_Rechedule(data: RecheduleData):
-    if data.Status != "Rescheduled":
+    if data.Status.strip().casefold() != "rescheduled":
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
     delivery = push_reschedule_notifications(
         sender_id=data.AdvisorId,
