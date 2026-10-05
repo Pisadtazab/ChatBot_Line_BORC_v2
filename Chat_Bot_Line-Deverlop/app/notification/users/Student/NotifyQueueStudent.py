@@ -44,7 +44,7 @@ def notify_student(data: StudentNotifyData):
     ]
     confirmation = [
         flex_row("👤 นักศึกษา", data.StudentName, wrap=True),
-        *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
+        flex_row("📝 หัวข้อ", data.ResearchTopic or "-", wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
