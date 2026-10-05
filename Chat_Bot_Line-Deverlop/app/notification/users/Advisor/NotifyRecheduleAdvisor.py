@@ -11,7 +11,7 @@ class RecheduleData(BaseModel):
     StudentId: str 
     StudentName: str
     AdvisorName: str
-    ResearchTopic: str = "-"
+    ResearchTopic: str
     Date: str
     Time: str
     Status: str

@@ -23,7 +23,7 @@ def send_flex_notification(user_id: str, title: str, color: str, body: list[dict
         return {"status": "error", "message": "Missing ACCESS_TOKEN"}
     payload = {"to": user_id, "messages": [{"type": "flex", "altText": title, "contents": {
         "type": "bubble", "size": "mega",
-        "header": {"type": "box", "layout": "vertical", "contents": [{"type": "text", "text": header_text or f"🔔 {title}", "color": "#ffffff", "size": "md", "weight": "bold"}], "backgroundColor": color, "paddingAll": "15px"},
+        "header": {"type": "box", "layout": "vertical", "contents": [{"type": "text", "text": header_text or f"{'🚀' if 'สำเร็จ' in title else '🔔'} {title}", "color": "#ffffff", "size": "md", "weight": "bold"}], "backgroundColor": color, "paddingAll": "15px"},
         "body": {"type": "box", "layout": "vertical", "spacing": "md", "contents": body, "paddingAll": "20px"},
         "footer": {"type": "box", "layout": "vertical", "contents": footer or [FOOTER], "paddingAll": "10px"},
     } }]}

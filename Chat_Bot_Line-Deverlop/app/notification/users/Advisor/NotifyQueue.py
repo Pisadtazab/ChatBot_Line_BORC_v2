@@ -7,8 +7,8 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 class BookingData(BaseModel):
     AdvisorId: str 
     StudentId: str 
-    StudentName: str
-    AdvisorName:str
+    StudentName: str | None = None
+    AdvisorName:str | None = None
     ResearchTopic: str
     Date: str
     Time: str
@@ -22,7 +22,7 @@ router = APIRouter()
 def notifyqueue(data: BookingData):
     confirmation = [
         flex_row("👤 ชื่อ", data.StudentName),
-        flex_row("👨‍🏫 อาจารย์", data.AdvisorName, wrap=True),
+        # flex_row("👨‍🏫 อาจารย์", data.AdvisorName, wrap=True),
         flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
@@ -31,7 +31,7 @@ def notifyqueue(data: BookingData):
     ]
     details = [
         flex_row("นักศึกษา", data.StudentName, wrap=True),
-        flex_row("อาจารย์", data.AdvisorName, wrap=True),
+        # flex_row("อาจารย์", data.AdvisorName, wrap=True),
         flex_row("หัวข้อ", data.ResearchTopic, wrap=True),
         flex_row("วันที่", data.Date),
         flex_row("เวลา", data.Time),
