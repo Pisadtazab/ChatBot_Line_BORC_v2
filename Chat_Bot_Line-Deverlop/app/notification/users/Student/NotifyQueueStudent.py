@@ -7,7 +7,7 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 class StudentNotifyData(BaseModel):
     userId: str = Field(validation_alias=AliasChoices("userId", "UserId"))
     AdvisorId: str
-    StudentName: str | None = None
+    StudentName: str
     AdvisorName: str | None = None
     ResearchTopic: str 
     Date: str
@@ -51,7 +51,7 @@ def notify_student(data: StudentNotifyData):
         {"type": "separator"},
         flex_row("🔖 ผลการแจ้ง", sender_result, value_color="#00B900", value_weight="bold", wrap=True),
     ]
-    sender_title = "ส่งผลอนุมัติการจองสำเร็จ" if data.Status == "Approved" else "แจ้งยกเลิกการจองสำเร็จ"
+    sender_title = "ส่งผลอนุมัติการจองสำเร็จ" if data.Status == "Approved" else "ส่งคำขอยกเลิกสำเร็จ"
     delivery = send_flex_request_notifications(
         data.AdvisorId, data.userId, sender_title, title, color, confirmation, details,
     )
