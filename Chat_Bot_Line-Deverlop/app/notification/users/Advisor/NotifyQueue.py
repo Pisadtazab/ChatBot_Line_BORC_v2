@@ -40,7 +40,7 @@ def notifyqueue(data: BookingData):
     ]
     delivery = send_flex_request_notifications(
         data.StudentId, data.AdvisorId,
-        "ส่งคำขอจองคิวสำเร็จ", "มีนักศึกษาจองคิว", "#00B900",
-        confirmation, details,
+        "ส่งคำขอจองคิวสำเร็จ", "มีนักศึกษาจองคิว", "#FFB100",
+        confirmation, details, sender_color="#00B900",
     )
     return {"status": delivery["status"], "notification": delivery}
