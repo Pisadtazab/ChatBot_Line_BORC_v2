@@ -9,7 +9,7 @@ class StudentNotifyData(BaseModel):
     AdvisorId: str
     StudentName: str | None = None
     AdvisorName: str | None = None
-    ResearchTopic: str = ""
+    ResearchTopic: str 
     Date: str
     Time: str
     Status: str
@@ -33,10 +33,11 @@ def notify_student(data: StudentNotifyData):
     if data.Status not in statuses:
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
     title, status_text, color, sender_result = statuses[data.Status]
+    research_topic = data.ResearchTopic.strip() or "-"
     details = [
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName),
         # flex_row("👤 ชื่อ", data.StudentName),
-        *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
+        flex_row("📝 หัวข้อ", research_topic, wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
@@ -44,7 +45,7 @@ def notify_student(data: StudentNotifyData):
     ]
     confirmation = [
         flex_row("👤 นักศึกษา", data.StudentName, wrap=True),
-        flex_row("📝 หัวข้อ", data.ResearchTopic or "-", wrap=True),
+        flex_row("📝 หัวข้อ", research_topic, wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
