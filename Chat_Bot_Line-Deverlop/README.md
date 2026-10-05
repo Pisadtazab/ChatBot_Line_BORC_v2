@@ -122,12 +122,14 @@ The sender is the person who initiated the booking action. The recipient gets th
 | `POST /NotifyCancelled/CancelBooking` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
 | `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
 | `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` (advisor) | `StudentId` (student) | Advisor |
-| `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` (advisor) | `StudentId`, `studentId`, `userId`, or `UserId` (student) | Advisor |
+| `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` (advisor) | `StudentId` (student) | Advisor |
 | `POST /NotifyChat/send_url/notification` | Booking system | `line_user_id` (student) | — |
 
 For booking-action endpoints, the API sends an event Flex to the recipient first, then a confirmation Flex to the sender if the recipient delivery succeeds. It does not send a separate failure Flex; delivery results are returned under `notification`. Both LINE IDs are required in those request bodies.
 
 Both reschedule endpoints require `StudentName` and `AdvisorName`. The advisor's Flex shows the student's name; the student's Flex shows the advisor's name.
+
+`POST /NotifyQueueStudent/RecheduleStudent` requires `StudentId`, `AdvisorId`, `AdvisorName`, `StudentName`, `ResearchTopic`, `Date`, and `Time`; it does not require `Status`. `POST /NotifyQueueAdivsor/RecheduleAdvisor` also requires `Status: "Rescheduled"`. If LINE rejects the Flex, `/RecheduleStudent` returns HTTP `502` with the delivery details.
 
 ### Reminders from `BookingOnline`
 
