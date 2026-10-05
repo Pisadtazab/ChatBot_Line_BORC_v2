@@ -21,12 +21,18 @@ router = APIRouter()
 @router.post("/NotifyStudent")
 def notify_student(data: StudentNotifyData):
     statuses = {
-        "Approved": ("การจองได้รับการยืนยัน ", "ยืนยันแล้ว", "#00B900"),
-        "Cancelled": ("การจองถูกยกเลิก ", "ยกเลิกแล้ว", "#FF4444"),
+        "Approved": (
+            "ยืนยันการจองคิวแล้ว ", "อนุมัติแล้ว", "#00B900",
+            "ส่งผลอนุมัติให้นักศึกษาแล้ว",
+        ),
+        "Cancelled": (
+            "การจองคิวถูกยกเลิก", "ยกเลิกแล้ว", "#FF4444",
+            "แจ้งผลยกเลิกให้นักศึกษาแล้ว",
+        ),
     }
     if data.Status not in statuses:
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
-    title, status_text, color = statuses[data.Status]
+    title, status_text, color, sender_result = statuses[data.Status]
     details = [
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName),
         flex_row("👤 ชื่อ", data.StudentName),
@@ -38,9 +44,12 @@ def notify_student(data: StudentNotifyData):
     ]
     confirmation = [
         flex_row("👤 นักศึกษา", data.StudentName, wrap=True),
-        flex_row("🔖 ผลการจอง", status_text, value_color=color, value_weight="bold"),
+        flex_row("🔖 ผลการแจ้ง", sender_result, value_color="#00B900", value_weight="bold", wrap=True),
     ]
-    delivery = send_flex_request_notifications(data.AdvisorId, data.userId, "ส่งผลการจองสำเร็จ", title, color, confirmation, details)
+    sender_title = "ส่งผลอนุมัติการจองสำเร็จ" if data.Status == "Approved" else "แจ้งยกเลิกการจองสำเร็จ"
+    delivery = send_flex_request_notifications(
+        data.AdvisorId, data.userId, sender_title, title, color, confirmation, details,
+    )
     message = (
         f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว"
         if delivery["status"] == "success"

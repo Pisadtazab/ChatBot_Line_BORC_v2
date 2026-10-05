@@ -13,7 +13,7 @@ def push_reschedule_notifications(
     advisor_name: str,
     color: str = "#445DFF",
 ) -> dict:
-    def contents(status: str) -> list[dict]:
+    def contents(status: str, status_color: str) -> list[dict]:
         rows = [
             flex_row("👤 ชื่อ", student_name, wrap=True),
             flex_row("📝 หัวข้อ", research_topic, wrap=True),
@@ -23,10 +23,10 @@ def push_reschedule_notifications(
         rows.insert(0, flex_row("👨‍🏫 อาจารย์", advisor_name, wrap=True))
         return rows + [
             {"type": "separator"},
-            flex_row("สถานะ", status, value_color=color, value_weight="bold", wrap=True),
+            flex_row("สถานะ", status, value_color=status_color, value_weight="bold", wrap=True),
         ]
 
     return send_flex_request_notifications(
         sender_id, recipient_id, sender_title, recipient_title, color,
-        contents("ส่งคำขอเลื่อนคิวสำเร็จ"), contents("เลื่อนคิว"),
+        contents("ส่งคำขอเลื่อนคิวสำเร็จ", "#00B900"), contents("เลื่อนคิว", color),
     )
