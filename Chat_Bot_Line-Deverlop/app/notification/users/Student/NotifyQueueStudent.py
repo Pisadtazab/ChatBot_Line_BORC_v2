@@ -7,8 +7,8 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 class StudentNotifyData(BaseModel):
     StudentId: str 
     AdvisorId: str
-    StudentName: str
-    AdvisorName: str | None = None
+    StudentName: str |None = None
+    AdvisorName: str |None = None
     ResearchTopic: str 
     Date: str
     Time: str
