@@ -127,7 +127,7 @@ The sender is the person who initiated the booking action. The recipient gets th
 
 For booking-action endpoints, the API sends an event Flex to the recipient first, then a confirmation Flex to the sender if the recipient delivery succeeds. It does not send a separate failure Flex; delivery results are returned under `notification`. Both LINE IDs are required in those request bodies.
 
-Both reschedule endpoints require `StudentName` and `AdvisorName`; both names appear in the Flex sent to each party.
+Both reschedule endpoints require `StudentName` and `AdvisorName`. The advisor's Flex shows the student's name; the student's Flex shows the advisor's name.
 
 ### Reminders from `BookingOnline`
 

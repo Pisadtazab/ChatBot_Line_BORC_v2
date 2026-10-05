@@ -31,5 +31,6 @@ def notify_Rechedule(data: RecheduleData):
         date=data.Date,
         time=data.Time,
         advisor_name=data.AdvisorName,
+        sender_is_advisor=True,
     )
     return {"status": delivery["status"], "notification": delivery}

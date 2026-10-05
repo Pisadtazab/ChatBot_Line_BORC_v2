@@ -44,6 +44,10 @@ def notify_student(data: StudentNotifyData):
     ]
     confirmation = [
         flex_row("👤 นักศึกษา", data.StudentName, wrap=True),
+        *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
+        flex_row("📅 วันที่", data.Date),
+        flex_row("⏰ เวลา", data.Time),
+        {"type": "separator"},
         flex_row("🔖 ผลการแจ้ง", sender_result, value_color="#00B900", value_weight="bold", wrap=True),
     ]
     sender_title = "ส่งผลอนุมัติการจองสำเร็จ" if data.Status == "Approved" else "แจ้งยกเลิกการจองสำเร็จ"
