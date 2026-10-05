@@ -5,7 +5,7 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 
 
 class StudentNotifyData(BaseModel):
-    userId: str = Field(validation_alias=AliasChoices("userId", "UserId"))
+    StudentId: str 
     AdvisorId: str
     StudentName: str
     AdvisorName: str | None = None
@@ -53,7 +53,7 @@ def notify_student(data: StudentNotifyData):
     ]
     sender_title = "ส่งผลอนุมัติการจองสำเร็จ" if data.Status == "Approved" else "ส่งคำขอยกเลิกสำเร็จ"
     delivery = send_flex_request_notifications(
-        data.AdvisorId, data.userId, sender_title, title, color, confirmation, details,
+        data.AdvisorId, data.StudentId, sender_title, title, color, confirmation, details,
     )
     message = (
         f"แจ้งเตือนนักศึกษา {data.StudentName} แล้ว"
