@@ -23,7 +23,7 @@ def notify_Rechedule(data: RecheduleData):
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
     delivery = push_reschedule_notifications(
         sender_id=data.AdvisorId,
-        recipient_id=data.UserId,
+        recipient_id=data.StudentId,
         sender_title="ส่งคำขอเลื่อนคิวสำเร็จ",
         recipient_title="อาจารย์เลื่อนคิว",
         student_name=data.StudentName,
