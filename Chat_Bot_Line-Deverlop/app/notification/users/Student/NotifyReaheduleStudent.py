@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import AliasChoices, BaseModel, Field
 
 from app.notification.routers.reschedule import push_reschedule_notifications
@@ -7,11 +7,11 @@ router = APIRouter()
 
 
 class RecheduleData(BaseModel):
-    StudentId: str = Field(validation_alias=AliasChoices("StudentId", "studentId", "userId", "UserId"))
+    StudentId: str 
     AdvisorId: str
     AdvisorName: str
     StudentName: str
-    ResearchTopic: str = "-"
+    ResearchTopic: str
     Date: str
     Time: str
     Status: str
@@ -19,8 +19,9 @@ class RecheduleData(BaseModel):
 # flex รับ
 @router.post("/RecheduleStudent")
 def notify_Rechedule(data: RecheduleData):
-    if data.Status.strip().casefold() != "rescheduled":
-        return {"status": "skip", "message": "ไม่รู้จัก Status"}
+    if data.Status.strip().casefold() != "Rescheduled":
+        raise HTTPException(status_code=400, detail="Status must be Rescheduled")
+    
     delivery = push_reschedule_notifications(
         sender_id=data.AdvisorId,
         recipient_id=data.StudentId,
@@ -33,4 +34,6 @@ def notify_Rechedule(data: RecheduleData):
         advisor_name=data.AdvisorName,
         sender_is_advisor=True,
     )
+    if delivery["status"] != "success":
+        raise HTTPException(status_code=502, detail=delivery)
     return {"status": delivery["status"], "notification": delivery}
