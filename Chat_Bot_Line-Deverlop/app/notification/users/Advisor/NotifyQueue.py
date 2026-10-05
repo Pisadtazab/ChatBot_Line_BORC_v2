@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.notification.helpers.flex import flex_row, send_flex_notifications
+from app.notification.helpers.flex import flex_row, send_flex_request_notifications
 
 
 class BookingData(BaseModel):
@@ -28,5 +28,18 @@ def notifyqueue(data: BookingData):
         {"type": "separator"},
         flex_row("สถานะ", "ส่งคำขอแล้ว รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
     ]
-    delivery = send_flex_notifications([data.StudentId], "ส่งคำขอจองคิวสำเร็จ", "#00B900", confirmation)
-    return {"status": delivery["status"], "notification": {"student": delivery}}
+    details = [
+        flex_row("นักศึกษา", data.StudentName, wrap=True),
+        flex_row("อาจารย์", data.AdvisorName, wrap=True),
+        flex_row("หัวข้อ", data.ResearchTopic, wrap=True),
+        flex_row("วันที่", data.Date),
+        flex_row("เวลา", data.Time),
+        {"type": "separator"},
+        flex_row("สถานะ", "มีนักศึกษาจองคิว รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
+    ]
+    delivery = send_flex_request_notifications(
+        data.StudentId, data.AdvisorId,
+        "ส่งคำขอจองคิวสำเร็จ", "มีนักศึกษาจองคิว", "#00B900",
+        confirmation, details,
+    )
+    return {"status": delivery["status"], "notification": delivery}
