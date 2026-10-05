@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 class RecheduleData(BaseModel):
-    UserId: str = Field(validation_alias=AliasChoices("userId", "UserId"))
+    StudentId: str 
     AdvisorId: str
     AdvisorName: str
     StudentName: str

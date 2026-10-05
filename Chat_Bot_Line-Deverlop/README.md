@@ -121,8 +121,8 @@ The sender is the person who initiated the booking action. The recipient gets th
 | `POST /NotifyQueueAdivsor/BookingStudent` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
 | `POST /NotifyCancelled/CancelBooking` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
 | `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
-| `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` (advisor) | `userId` or `UserId` (student) | Advisor |
-| `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` (advisor) | `userId` or `UserId` (student) | Advisor |
+| `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` (advisor) | `StudentId` (student) | Advisor |
+| `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` (advisor) | `StudentId`, `studentId`, `userId`, or `UserId` (student) | Advisor |
 | `POST /NotifyChat/send_url/notification` | Booking system | `line_user_id` (student) | — |
 
 For booking-action endpoints, the API sends an event Flex to the recipient first, then a confirmation Flex to the sender if the recipient delivery succeeds. It does not send a separate failure Flex; delivery results are returned under `notification`. Both LINE IDs are required in those request bodies.
