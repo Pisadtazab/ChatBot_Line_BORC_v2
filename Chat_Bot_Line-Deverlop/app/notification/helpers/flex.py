@@ -32,7 +32,10 @@ def send_flex_notification(user_id: str, title: str, color: str, body: list[dict
         response.raise_for_status()
         return {"status": "success", "http_status": response.status_code}
     except requests.RequestException as exc:
-        return {"status": "error", "message": str(exc)}
+        result = {"status": "error", "message": str(exc)}
+        if exc.response is not None:
+            result["line_response"] = exc.response.text
+        return result
 
 
 def send_flex_notifications(user_ids: list[str | None], title: str, color: str, body: list[dict]) -> dict:
