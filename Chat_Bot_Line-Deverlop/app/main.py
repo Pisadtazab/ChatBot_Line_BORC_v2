@@ -38,7 +38,6 @@ configured_origins = [
     "http://localhost:5173",
     "http://localhost:8000",
     "http://localhost:5000",
-    "https://proceeds-tax-employ-assigned.trycloudflare.com",
     *filter(None, [
         os.getenv("Frontend_BORC_URL"),
         os.getenv("Backend_BORC_URL"),
