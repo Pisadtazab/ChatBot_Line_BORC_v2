@@ -7,8 +7,8 @@ router = APIRouter()
 
 
 class RecheduleData(BaseModel):
-    AdvisorId: str | None = None
-    StudentId: str | None = None
+    AdvisorId: str 
+    StudentId: str 
     StudentName: str
     ResearchTopic: str = "-"
     Date: str

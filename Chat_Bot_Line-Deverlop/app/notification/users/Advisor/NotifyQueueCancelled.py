@@ -5,8 +5,8 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 
 
 class CancelData(BaseModel):
-    AdvisorId: str | None = None
-    StudentId: str | None = None
+    AdvisorId: str
+    StudentId: str 
     StudentName: str
     ResearchTopic: str = ""
     Date: str

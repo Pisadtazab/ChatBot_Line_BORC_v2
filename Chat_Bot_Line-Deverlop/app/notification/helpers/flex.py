@@ -57,25 +57,13 @@ def send_flex_request_notifications(sender_id: str | None, recipient_id: str | N
     sender_id = sender_id.strip() or None if sender_id else None #ผู้ส่ง
     recipient_id = recipient_id.strip() or None if recipient_id else None #ผู้รับปลายทาง
 
-    def notify_failure(user_id: str | None, reason: str) -> dict:
-        return send_flex_notifications([user_id], "ส่งคำขอไม่สำเร็จ", "#FF4444", [
-            flex_row("สถานะ", "ส่งคำขอไม่สำเร็จ", value_color="#FF4444", value_weight="bold"),
-            flex_row("สาเหตุ", reason, wrap=True),
-        ])
-
-    missing = [name for name, user_id in (("sender", sender_id), ("recipient", recipient_id)) if not user_id]
-    if missing:
-        failure = notify_failure(sender_id or recipient_id, f"ไม่มี LINE ID ของ {', '.join(missing)}")
-        return {"status": "error", "reason": "missing_id", "failure_notification": failure}
-
     recipient_delivery = send_flex_notifications([recipient_id], recipient_title, color, recipient_body)
-    if recipient_delivery["status"] != "success":
-        failure = notify_failure(sender_id, "แจ้งผู้รับปลายทางไม่สำเร็จ")
-        return {"status": "error", "recipient": recipient_delivery, "failure_notification": failure}
+    if recipient_id and recipient_delivery["status"] != "success":
+        return {"status": "error", "recipient": recipient_delivery}
 
     sender_delivery = send_flex_notifications([sender_id], sender_title, sender_color, sender_body)
-    if sender_delivery["status"] != "success":
-        failure = notify_failure(sender_id, "ส่งการยืนยันกลับไปยังผู้ส่งไม่สำเร็จ")
-        return {"status": "error", "recipient": recipient_delivery, "sender": sender_delivery, "failure_notification": failure}
+    if sender_id and sender_delivery["status"] != "success":
+        return {"status": "error", "recipient": recipient_delivery, "sender": sender_delivery}
 
-    return {"status": "success", "sender": sender_delivery, "recipient": recipient_delivery}
+    status = "success" if sender_id and recipient_id else "partial" if sender_id or recipient_id else "skipped"
+    return {"status": status, "sender": sender_delivery, "recipient": recipient_delivery}

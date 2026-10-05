@@ -7,8 +7,8 @@ router = APIRouter()
 
 
 class RecheduleData(BaseModel):
-    UserId: str | None = Field(default=None, validation_alias=AliasChoices("userId", "UserId"))
-    AdvisorId: str | None = None
+    UserId: str = Field(validation_alias=AliasChoices("userId", "UserId"))
+    AdvisorId: str
     AdvisorName: str
     StudentName: str
     ResearchTopic: str = "-"
@@ -27,7 +27,6 @@ def notify_Rechedule(data: RecheduleData):
         sender_title="ส่งคำขอเลื่อนคิวสำเร็จ",
         recipient_title="อาจารย์เลื่อนคิว",
         student_name=data.StudentName,
-        advisor_name=data.AdvisorName,
         research_topic=data.ResearchTopic,
         date=data.Date,
         time=data.Time,

@@ -5,8 +5,8 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 
 
 class StudentNotifyData(BaseModel):
-    userId: str | None = Field(default=None, validation_alias=AliasChoices("userId", "UserId"))
-    AdvisorId: str | None = None
+    userId: str = Field(validation_alias=AliasChoices("userId", "UserId"))
+    AdvisorId: str
     StudentName: str
     AdvisorName: str
     Date: str

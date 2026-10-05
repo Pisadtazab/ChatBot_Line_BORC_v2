@@ -2,8 +2,8 @@ from app.notification.helpers.flex import flex_row, send_flex_request_notificati
 
 
 def push_reschedule_notifications(
-    sender_id: str | None,
-    recipient_id: str | None,
+    sender_id: str ,
+    recipient_id: str ,
     sender_title: str,
     recipient_title: str,
     student_name: str,

@@ -5,8 +5,8 @@ from app.notification.helpers.flex import flex_row, send_flex_notifications
 
 
 class BookingData(BaseModel):
-    AdvisorId: str | None = None
-    StudentId: str | None = None
+    AdvisorId: str 
+    StudentId: str 
     StudentName: str
     AdvisorName:str
     ResearchTopic: str
@@ -28,14 +28,5 @@ def notifyqueue(data: BookingData):
         {"type": "separator"},
         flex_row("สถานะ", "ส่งคำขอแล้ว รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
     ]
-    student_id = data.StudentId.strip() if data.StudentId else ""
-    if not student_id:
-        return {"status": "error", "reason": "missing_student_id"}
-
-    delivery = send_flex_notifications([student_id], "ส่งคำขอจองคิวสำเร็จ", "#00B900", confirmation)
-    if delivery["status"] != "success":
-        failure = send_flex_notifications([student_id], "ส่งคำขอไม่สำเร็จ", "#FF4444", [
-            flex_row("สถานะ", "ส่งคำขอจองคิวไม่สำเร็จ", value_color="#FF4444", value_weight="bold"),
-        ])
-        return {"status": "error", "notification": delivery, "failure_notification": failure}
-    return {"status": "success", "notification": {"student": delivery}}
+    delivery = send_flex_notifications([data.StudentId], "ส่งคำขอจองคิวสำเร็จ", "#00B900", confirmation)
+    return {"status": delivery["status"], "notification": {"student": delivery}}
