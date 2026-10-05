@@ -21,6 +21,7 @@ router = APIRouter()
 @router.post("/BookingStudent")
 def notifyqueue(data: BookingData):
     confirmation = [
+        flex_row("👤 ชื่อ", data.StudentName),
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName, wrap=True),
         flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True),
         flex_row("📅 วันที่", data.Date),

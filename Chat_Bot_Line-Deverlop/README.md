@@ -85,11 +85,11 @@ extractpdf-flow.txt                # Detailed PDF and RAG flow
 | `GET` | `/files` | รายชื่อ source PDF ที่มีใน MongoDB |
 | `GET` | `/image/{file_id}` | Redirect ไป Cloudinary หรืออ่าน GridFS เก่า |
 | `DELETE` | `/delete_file?pdf_name=...` | ลบ PDF records จาก MongoDB |
-| `POST` | `/NotifyFristLogin/UserLine_id` | แจ้งเตือนเมื่อผูก LINE; ส่งเมื่อ UserProfile มีสถานะ `Approved` |
+| `POST` | `/NotifyFristLogin/UserLine_id` | ต้อนรับเมื่อผูก LINE; ส่งเมื่อ UserProfile มีสถานะ `Approved` |
 | `POST` | `/NotifyQueueAdivsor/BookingStudent` | แจ้งเมื่อมีการจองคิว |
 | `POST` | `/NotifyCancelled/CancelBooking` | แจ้งเมื่อนักศึกษายกเลิก |
-| `POST` | `/NotifyQueueAdivsor/RecheduleAdvisor` | แจ้งเมื่อมีการเลื่อนคิว |
-| `POST` | `/NotifyQueueStudent/NotifyStudent` | แจ้งเมื่อตอบรับหรือยกเลิกการจอง (`Approved`/`Cancelled`) |
+| `POST` | `/NotifyQueueAdivsor/RecheduleAdvisor` | แจ้งเมื่อนักศึกษาเลื่อนคิว |
+| `POST` | `/NotifyQueueStudent/NotifyStudent` | แจ้งผลอนุมัติหรือยกเลิก (`Approved`/`Cancelled`) |
 | `POST` | `/NotifyQueueStudent/RecheduleStudent` | แจ้งนักศึกษาเมื่ออาจารย์เลื่อนคิว |
 | `POST` | `/NotifyChat/send_url/notification` | ส่งลิงก์นัดหมายให้นักศึกษา |
 
@@ -100,12 +100,10 @@ extractpdf-flow.txt                # Detailed PDF and RAG flow
 ```mermaid
 flowchart TD
     A[Booking action] --> B[Notification POST route]
-    B --> C{Both LINE IDs present?}
-    C -- Yes --> D[Push event Flex to recipient]
-    D --> E{Recipient push succeeds?}
-    E -- Yes --> F[Push success Flex to sender]
-    E -- No --> G[Push failure Flex to sender]
-    C -- No --> H[Push failure Flex to available ID]
+    B --> C[Push event Flex to recipient]
+    C --> D{Recipient push succeeds?}
+    D -- Yes --> E[Push confirmation Flex to sender]
+    D -- No --> F[Return delivery error]
     J[FastAPI startup] --> K[Read BookingOnline every 60 seconds]
     K --> L{Status and appointment time}
     L -- Approved, 30 minutes before --> M[Reminder Flex to Student and Advisor]
@@ -113,19 +111,23 @@ flowchart TD
     L -- Completed --> O[Completion Flex to Student and Advisor]
 ```
 
-### Booking actions
+### Notification routers: sender and recipient
 
-The booking application calls these notification endpoints after a booking action. The LINE IDs must be passed from the booking record:
+The sender is the person who initiated the booking action. The recipient gets the main event notification. When delivery succeeds, the sender also gets a confirmation Flex where noted.
 
-| Action | Endpoint | Sender ID | Recipient ID |
+| Endpoint | Sender | Main recipient | Confirmation recipient |
 | --- | --- | --- | --- |
-| Student requests a booking | `POST /NotifyQueueAdivsor/BookingStudent` | `StudentId` | `AdvisorId` |
-| Student reschedules | `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` | `AdvisorId` |
-| Advisor reschedules | `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` | `userId` or `UserId` |
-| Student cancels | `POST /NotifyCancelled/CancelBooking` | `StudentId` | `AdvisorId` |
-| Advisor approves or cancels | `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` | `userId` or `UserId` |
+| `POST /NotifyFristLogin/UserLine_id` | System | `userId` (linked user; only if `Approved`) | — |
+| `POST /NotifyQueueAdivsor/BookingStudent` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
+| `POST /NotifyCancelled/CancelBooking` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
+| `POST /NotifyQueueAdivsor/RecheduleAdvisor` | `StudentId` (student) | `AdvisorId` (advisor) | Student |
+| `POST /NotifyQueueStudent/NotifyStudent` | `AdvisorId` (advisor) | `userId` or `UserId` (student) | Advisor |
+| `POST /NotifyQueueStudent/RecheduleStudent` | `AdvisorId` (advisor) | `userId` or `UserId` (student) | Advisor |
+| `POST /NotifyChat/send_url/notification` | Booking system | `line_user_id` (student) | — |
 
-The API sends a success Flex to the sender and an event Flex to the recipient. If either ID is empty or delivery to the recipient fails, it returns `error` and tries to send a failure Flex to an available ID. If both IDs are empty, LINE has no destination for that failure message. The response includes the delivery result under `notification`.
+For booking-action endpoints, the API sends an event Flex to the recipient first, then a confirmation Flex to the sender if the recipient delivery succeeds. It does not send a separate failure Flex; delivery results are returned under `notification`. Both LINE IDs are required in those request bodies.
+
+Both reschedule endpoints require `StudentName` and `AdvisorName`; both names appear in the Flex sent to each party.
 
 ### Reminders from `BookingOnline`
 
@@ -140,7 +142,7 @@ The background loop checks once per minute, so a time-based notification can be 
 
 ## Notification recipients
 
-Booking action endpoints require both sender and recipient LINE IDs. Empty IDs or failed delivery return `error`; the API attempts a failure Flex to the available ID. When both IDs are empty, it can only return the error in the HTTP response. The automated `BookingOnline` reminders send to whichever IDs are present and store a notification flag after the attempt.
+Booking action endpoints require sender and recipient LINE IDs. A missing or `null` required field is rejected by FastAPI; delivery failures are reported in the HTTP response without sending a separate failure Flex. The automated `BookingOnline` reminders send to whichever LINE IDs are present in each booking record and store a notification flag after the attempt.
 
 ## Environment variables
 

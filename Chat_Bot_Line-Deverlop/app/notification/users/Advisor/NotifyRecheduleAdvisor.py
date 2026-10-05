@@ -10,6 +10,7 @@ class RecheduleData(BaseModel):
     AdvisorId: str 
     StudentId: str 
     StudentName: str
+    AdvisorName: str
     ResearchTopic: str = "-"
     Date: str
     Time: str
@@ -29,5 +30,6 @@ def notify_Rechedule(data: RecheduleData):
         research_topic=data.ResearchTopic,
         date=data.Date,
         time=data.Time,
+        advisor_name=data.AdvisorName,
     )
     return {"status": delivery["status"], "notification": delivery}

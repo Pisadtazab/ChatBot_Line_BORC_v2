@@ -16,7 +16,7 @@ class RecheduleData(BaseModel):
     Time: str
     Status: str
 
-
+# flex รับ
 @router.post("/RecheduleStudent")
 def notify_Rechedule(data: RecheduleData):
     if data.Status != "Rescheduled":
@@ -30,6 +30,6 @@ def notify_Rechedule(data: RecheduleData):
         research_topic=data.ResearchTopic,
         date=data.Date,
         time=data.Time,
-        recipient_advisor_name=data.AdvisorName,
+        advisor_name=data.AdvisorName,
     )
     return {"status": delivery["status"], "notification": delivery}

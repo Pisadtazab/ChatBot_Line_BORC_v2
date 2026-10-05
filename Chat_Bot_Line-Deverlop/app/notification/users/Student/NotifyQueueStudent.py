@@ -28,8 +28,8 @@ def notify_student(data: StudentNotifyData):
         return {"status": "skip", "message": "ไม่รู้จัก Status"}
     title, status_text, color = statuses[data.Status]
     details = [
-        flex_row("👤 ชื่อ", data.StudentName),
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName),
+        flex_row("👤 ชื่อ", data.StudentName),
         *([flex_row("📝 หัวข้อ", data.ResearchTopic, wrap=True)] if data.ResearchTopic else []),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
