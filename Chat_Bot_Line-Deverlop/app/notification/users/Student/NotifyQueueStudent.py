@@ -21,8 +21,8 @@ router = APIRouter()
 @router.post("/NotifyStudent")
 def notify_student(data: StudentNotifyData):
     statuses = {
-        "Approved": ("การจองได้รับการยืนยัน ✅", "ยืนยันแล้ว", "#00B900"),
-        "Cancelled": ("การจองถูกยกเลิก ❌", "ยกเลิกแล้ว", "#FF4444"),
+        "Approved": ("การจองได้รับการยืนยัน ", "ยืนยันแล้ว", "#00B900"),
+        "Cancelled": ("การจองถูกยกเลิก ", "ยกเลิกแล้ว", "#FF4444"),
     }
     if data.Status not in statuses:
         return {"status": "skip", "message": "ไม่รู้จัก Status"}

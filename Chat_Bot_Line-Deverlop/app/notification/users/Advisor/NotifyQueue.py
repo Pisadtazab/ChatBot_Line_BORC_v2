@@ -26,7 +26,7 @@ def notifyqueue(data: BookingData):
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
         {"type": "separator"},
-        flex_row("สถานะ", "ส่งคำขอแล้ว รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
+        flex_row("สถานะ", "รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
     ]
     details = [
         flex_row("นักศึกษา", data.StudentName, wrap=True),
@@ -35,7 +35,7 @@ def notifyqueue(data: BookingData):
         flex_row("วันที่", data.Date),
         flex_row("เวลา", data.Time),
         {"type": "separator"},
-        flex_row("สถานะ", "มีนักศึกษาจองคิว รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
+        flex_row("สถานะ", "รอการอนุมัติ", value_color="#FFB100", value_weight="bold", wrap=True),
     ]
     delivery = send_flex_request_notifications(
         data.StudentId, data.AdvisorId,
