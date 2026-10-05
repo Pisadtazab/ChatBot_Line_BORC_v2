@@ -36,7 +36,6 @@ def notify_student(data: StudentNotifyData):
     research_topic = data.ResearchTopic.strip() or "-"
     details = [
         flex_row("👨‍🏫 อาจารย์", data.AdvisorName),
-        # flex_row("👤 ชื่อ", data.StudentName),
         flex_row("📝 หัวข้อ", research_topic, wrap=True),
         flex_row("📅 วันที่", data.Date),
         flex_row("⏰ เวลา", data.Time),
